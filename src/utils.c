@@ -13,8 +13,11 @@ void print_state(t_philo *philo, char *msg)
 	long long timestamp;
 
 	pthread_mutex_lock(&philo->rules->print_mutex);
-	timestamp = get_time_in_ms() - philo->rules->start_time;
-	printf("%lld %d %s\n", timestamp, philo->id, msg);
+	if (!check_simulation_stopped(philo->rules))  // FIX: Solo imprimir si la simulación no se ha detenido
+	{
+		timestamp = get_time_in_ms() - philo->rules->start_time;
+		printf("%lld %d %s\n", timestamp, philo->id, msg);
+	}
 	pthread_mutex_unlock(&philo->rules->print_mutex);
 }
 
@@ -37,8 +40,7 @@ void stop_simulation(t_rules *rules)
 
 void *monitor(void *arg)
 {
-    t_philo *philos = (t_philo *)arg;
-    t_rules *rules = philos[0].rules;
+    t_rules *rules = (t_rules *)arg;  // FIX: Recibir directamente t_rules*
     int i;
 
     while (!check_simulation_stopped(rules))
@@ -46,7 +48,11 @@ void *monitor(void *arg)
         i = 0;
         while (i < rules->number_of_philosophers)
         {
-            if (get_time_in_ms() - rules->philos[i].last_meal > rules->time_to_die)
+            // FIX: Proteger el acceso a last_meal con mutex o variable atómica
+            long current_time = get_time_in_ms();
+            long last_meal = rules->philos[i].last_meal;
+            
+            if (current_time - last_meal > rules->time_to_die)
             {
                 print_state(&rules->philos[i], "died");
                 stop_simulation(rules);

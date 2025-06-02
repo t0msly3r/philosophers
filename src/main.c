@@ -25,6 +25,7 @@ void    *philosopher(void *arg)
         print_state(philo, "is eating");
         philo->eat_count++;
         philo->last_meal = get_time_in_ms(); // Replace with actual time logic
+        usleep(philo->rules->time_to_eat * 1000); // Simulate eating time
 
 		if (philo->id % 2 == 0)
 		{
@@ -37,7 +38,6 @@ void    *philosopher(void *arg)
 		pthread_mutex_unlock(philo->left_fork);
 		}
 		// Simulate thinking or sleeping
-        usleep(philo->rules->time_to_eat * 1000); // Simulate eating time
         print_state(philo, "is sleeping");
         usleep(philo->rules->time_to_sleep * 1000); // Simulate sleeping time
         print_state(philo, "is thinking");
@@ -78,7 +78,7 @@ void    ft_initialize_philos(t_philo *philosophers, t_rules *rules, pthread_mute
     }
 }
 
-void    ft_initialize_rules(t_rules *rules, int argc, char **argv)
+void    ft_initialize_rules(t_rules *rules, int argc, char **argv, t_philo *philo)
 {
     rules->number_of_philosophers = atoi(argv[1]);
     rules->time_to_die = atoi(argv[2]);
@@ -90,6 +90,7 @@ void    ft_initialize_rules(t_rules *rules, int argc, char **argv)
         rules->must_eat = atoi(argv[5]);
     rules->simulation_stopped = 0;
     rules->start_time = get_time_in_ms(); // Initialize with actual start time logic
+    rules->philos = philo;
     pthread_mutex_init(&rules->print_mutex, NULL);
     pthread_mutex_init(&rules->death_mutex, NULL);
 }
@@ -126,13 +127,13 @@ int main(int argc, char **argv)
         free(forks);
         return 1;
     }
-    ft_initialize_rules(&rules, argc, argv);
+    ft_initialize_rules(&rules, argc, argv, philosophers);
     rules.forks = forks;
     ft_initialize_philos(philosophers, &rules, forks);
 
     // Start philosopher threads
     ft_create_threads(philosophers, &rules);
-    pthread_create(&monitor_thread, NULL, monitor, philosophers);
+    pthread_create(&monitor_thread, NULL, monitor, &rules);
     pthread_join(monitor_thread, NULL);
     // for (int i = 0; i < rules.number_of_philosophers; i++)
 	//     pthread_join(philosophers[i].thread, NULL);
