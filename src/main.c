@@ -5,7 +5,7 @@ void    *philosopher(void *arg)
     t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	while (!check_simulation_stopped(philo->rules) || check_times_eaten(philo))
+	while (!check_simulation_stopped(philo->rules) && !check_times_eaten(philo))
 	{
 		if (philo->id % 2 == 0)
 		{
@@ -17,7 +17,9 @@ void    *philosopher(void *arg)
 		else
 		{
 		pthread_mutex_lock(philo->left_fork);
+        print_state(philo, "has taken a fork");
 		pthread_mutex_lock(philo->right_fork);
+        print_state(philo, "has taken a fork");
 		}
 		// Simulate eating
         print_state(philo, "is eating");
@@ -68,7 +70,7 @@ void    ft_initialize_philos(t_philo *philosophers, t_rules *rules, pthread_mute
         pthread_mutex_init(&forks[i], NULL);
         philosophers[i].id = i + 1;
         philosophers[i].eat_count = 0;
-        philosophers[i].last_meal = 0; // Initialize with actual time logic
+        philosophers[i].last_meal = get_time_in_ms(); // Initialize with actual time logic
         philosophers[i].left_fork = &forks[i];
         philosophers[i].right_fork = &forks[(i + 1) % rules->number_of_philosophers];
         philosophers[i].rules = rules;
@@ -87,7 +89,7 @@ void    ft_initialize_rules(t_rules *rules, int argc, char **argv)
     else
         rules->must_eat = atoi(argv[5]);
     rules->simulation_stopped = 0;
-    rules->start_time = 0; // Initialize with actual start time logic
+    rules->start_time = get_time_in_ms(); // Initialize with actual start time logic
     pthread_mutex_init(&rules->print_mutex, NULL);
     pthread_mutex_init(&rules->death_mutex, NULL);
 }
@@ -96,7 +98,7 @@ int main(int argc, char **argv)
 {
     if (argc < 5 || argc > 6)
     {
-        fprintf(stderr, "Usage: %s number_of_philosophers time_to_die time_to_eat time_to_sleep [must_eat]\n", argv[0]);
+        printf("Usage: %s number_of_philosophers time_to_die time_to_eat time_to_sleep [must_eat]\n", argv[0]);
         return 1;
     }
     t_rules         rules;
@@ -106,6 +108,11 @@ int main(int argc, char **argv)
     int             n;
 
     n = ft_atoi(argv[1]);
+    if (n <= 0 || n > 200)
+    {
+        printf("Number of philosophers must be greater than 0.\n");
+        return 1;
+    }
     forks = malloc(n * sizeof(pthread_mutex_t));
     if (!forks)
     {
@@ -127,8 +134,8 @@ int main(int argc, char **argv)
     ft_create_threads(philosophers, &rules);
     pthread_create(&monitor_thread, NULL, monitor, philosophers);
     pthread_join(monitor_thread, NULL);
-    for (int i = 0; i < rules.number_of_philosophers; i++)
-	    pthread_join(philosophers[i].thread, NULL);
+    // for (int i = 0; i < rules.number_of_philosophers; i++)
+	//     pthread_join(philosophers[i].thread, NULL);
 
     // Cleanup and exit
     for (int i = 0; i < rules.number_of_philosophers; i++)

@@ -37,12 +37,13 @@ void stop_simulation(t_rules *rules)
 
 void *monitor(void *arg)
 {
-    t_rules *rules = (t_rules *)arg;
+    t_philo *philos = (t_philo *)arg;
+    t_rules *rules = philos[0].rules;
     int i;
 
-    i = 0; 
     while (!check_simulation_stopped(rules))
     {
+        i = 0;
         while (i < rules->number_of_philosophers)
         {
             if (get_time_in_ms() - rules->philos[i].last_meal > rules->time_to_die)
@@ -61,8 +62,6 @@ void *monitor(void *arg)
 int check_times_eaten(t_philo *philo)
 {
     if (philo->rules->must_eat == -1)
-        return 1; // No eating limit, always return true
-    else if (philo->eat_count > philo->rules->must_eat)
-        return (1);
-    return (0);
+        return 0; // No eating limit, always return true
+    return (philo->eat_count >= philo->rules->must_eat);
 }
