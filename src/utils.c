@@ -1,5 +1,49 @@
 #include "../include/philo.h"
 
+void check_arguments(int argc, char **argv)
+{
+    int i;
+    int j;
+
+    j = 1;
+    i = 0;
+    if (argc < 5 || argc > 6)
+    {
+        printf("Usage: ./philo number_of_philosophers time_to_die time_to_eat time_to_sleep [must_eat]\n");
+        exit(EXIT_FAILURE);
+    }
+    while (j < argc)
+    {
+        i = 0;
+        while (argv[j][i])
+        {
+            if (argv[j][i] < '0' || argv[j][i] > '9')
+            {
+                printf("Invalid argument: %s\n", argv[j]);
+                exit(EXIT_FAILURE);
+            }
+            i++;
+        }
+        j++;
+    }
+}
+
+void ft_cleanup(t_rules *rules, t_philo *philosophers, pthread_mutex_t *forks)
+{
+    int i;
+
+    i = 0;
+    while (i < rules->number_of_philosophers)
+    {
+        pthread_mutex_destroy(&forks[i]);
+        i++;
+    }
+    pthread_mutex_destroy(&(rules)->print_mutex);
+    pthread_mutex_destroy(&(rules)->death_mutex);
+    free(forks);
+    free(philosophers);
+}
+
 long long get_time_in_ms(void)
 {
 	struct timeval	tv;
@@ -19,50 +63,6 @@ void print_state(t_philo *philo, char *msg)
 		printf("%lld %d %s\n", timestamp, philo->id, msg);
 	}
 	pthread_mutex_unlock(&philo->rules->print_mutex);
-}
-
-int check_simulation_stopped(t_rules *rules)
-{
-    int stopped;
-
-    pthread_mutex_lock(&rules->death_mutex);
-    stopped = rules->simulation_stopped;
-    pthread_mutex_unlock(&rules->death_mutex);
-    return stopped;
-}
-
-void stop_simulation(t_rules *rules)
-{
-    pthread_mutex_lock(&rules->death_mutex);
-    rules->simulation_stopped = 1;
-    pthread_mutex_unlock(&rules->death_mutex);
-}
-
-void *monitor(void *arg)
-{
-    t_rules *rules = (t_rules *)arg;  // FIX: Recibir directamente t_rules*
-    int i;
-
-    while (!check_simulation_stopped(rules))
-    {
-        i = 0;
-        while (i < rules->number_of_philosophers)
-        {
-            // FIX: Proteger el acceso a last_meal con mutex o variable atómica
-            long current_time = get_time_in_ms();
-            long last_meal = rules->philos[i].last_meal;
-            
-            if (current_time - last_meal > rules->time_to_die)
-            {
-                print_state(&rules->philos[i], "died");
-                stop_simulation(rules);
-                return (NULL);
-            }
-            i++;
-        }
-        usleep(1000); // Sleep for a short duration to avoid busy waiting
-    }
-    return NULL;
 }
 
 int check_times_eaten(t_philo *philo)

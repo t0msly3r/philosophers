@@ -34,9 +34,18 @@ typedef struct s_philo {
 
 long long	get_time_in_ms(void);
 void 		print_state(t_philo *philo, char *msg);
-void stop_simulation(t_rules *rules);
-int check_simulation_stopped(t_rules *rules);
-void *monitor(void *arg);
-int check_times_eaten(t_philo *philo);
+void        stop_simulation(t_rules *rules);
+int         check_simulation_stopped(t_rules *rules);
+void        *monitor(void *arg);
+int         check_times_eaten(t_philo *philo);
+void        ft_create_threads(t_philo *philosophers, t_rules *rules);
+void        ft_initialize_philos(t_philo *philosophers, t_rules *rules, pthread_mutex_t *forks);
+void        ft_initialize_rules(t_rules *rules, int argc, char **argv, t_philo *philo);
+void        check_arguments(int argc, char **argv);
+int         manage_variables(char **argv, pthread_mutex_t **forks, t_philo **philosophers);
+void    	*philosopher(void *arg);
+void		ft_manage_threads(t_philo *philosophers, t_rules *rules, pthread_t *monitor_thread);
+void		ft_cleanup(t_rules *rules, t_philo *philosophers, pthread_mutex_t *forks);
+int			check_times_eaten(t_philo *philo);
 
 #endif
