@@ -1,41 +1,26 @@
-# Variables
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -Iinclude
-SRC_DIR = src
-OBJ_DIR = obj
+CC = cc
+CFLAGS = -Wall -Wextra -Werror
+SRC = src/main.c src/utils.c src/init.c src/threads.c
+OBJ = $(SRC:.c=.o)
+NAME = philo
 LIB_DIR = lib
 LIB_NAME = libft.a
-LIB = $(LIB_DIR)/$(LIB_NAME)
 
-# Files
-SRCS = $(wildcard $(SRC_DIR)/*.c)
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
+all: $(LIB_DIR)/$(LIB_NAME) $(NAME)
 
-# Targets
-NAME = program
+$(LIB_DIR)/$(LIB_NAME):
+	$(MAKE) -C $(LIB_DIR)
 
-# Rules
-all: $(LIB) $(NAME)
-
-$(LIB):
-	@$(MAKE) -C $(LIB_DIR)
-
-$(NAME): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LIB)
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJ_DIR):
-	mkdir -p $(OBJ_DIR)
+$(NAME): $(OBJ) $(LIB_DIR)/$(LIB_NAME)
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJ) -L$(LIB_DIR) -lft
 
 clean:
+	rm -f $(OBJ)
 	$(MAKE) -C $(LIB_DIR) clean
-	rm -rf $(OBJ_DIR)
 
 fclean: clean
-	$(MAKE) -C $(LIB_DIR) fclean
 	rm -f $(NAME)
+	$(MAKE) -C $(LIB_DIR) fclean
 
 re: fclean all
 

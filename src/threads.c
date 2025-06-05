@@ -1,82 +1,115 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   threads.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tfiz-ben <tfiz-ben@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/03 11:40:57 by tfiz-ben          #+#    #+#             */
+/*   Updated: 2025/06/04 17:43:17 by tfiz-ben         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../include/philo.h"
 
-void *monitor(void *arg)
+static void	*check_end_died(t_rules *rules, long current_time, long last_meal,
+		int i)
 {
-    t_rules *rules = (t_rules *)arg;  // FIX: Recibir directamente t_rules*
-    int i;
-
-    while (!check_simulation_stopped(rules))
-    {
-        i = 0;
-        while (i < rules->number_of_philosophers)
-        {
-            long current_time = get_time_in_ms();
-            long last_meal = rules->philos[i].last_meal;
-            
-            if (current_time - last_meal > rules->time_to_die)
-            {
-                print_state(&rules->philos[i], "died");
-                stop_simulation(rules);
-                return (NULL);
-            }
-            i++;
-        }
-        usleep(1000); // Sleep for a short duration to avoid busy waiting
-    }
-    return NULL;
+	if (rules->must_eat != -1 && check_times_eaten(rules->philos))
+	{
+		print_state(&rules->philos[i], "end");
+		stop_simulation(rules);
+		return (NULL);
+	}
+	else if (current_time - last_meal > rules->time_to_die)
+	{
+		print_state(&rules->philos[i], "died");
+		stop_simulation(rules);
+		return (NULL);
+	}
+	return (" ");
 }
 
-static void take_fork(t_philo *philo)
+void	*monitor(void *arg)
 {
-    	if (philo->id % 2 == 0)
+	t_rules	*rules;
+	int		i;
+	long	current_time;
+	long	last_meal;
+
+	rules = (t_rules *)arg;
+	while (!check_simulation_stopped(rules))
+	{
+		i = 0;
+		while (i < rules->number_of_philosophers)
 		{
-		pthread_mutex_lock(philo->right_fork);
-        print_state(philo, "has taken a fork");
-		pthread_mutex_lock(philo->left_fork);
-        print_state(philo, "has taken a fork");
+			current_time = get_time_in_ms();
+			last_meal = rules->philos[i].last_meal;
+			if (!check_end_died(rules, current_time, last_meal, i))
+				return (NULL);
+			i++;
 		}
-		else
-		{
-		pthread_mutex_lock(philo->left_fork);
-        print_state(philo, "has taken a fork");
-		pthread_mutex_lock(philo->right_fork);
-        print_state(philo, "has taken a fork");
-		}
+		usleep(500);
+	}
+	return (NULL);
 }
 
-static void left_fork(t_philo *philo)
+static void	take_fork(t_philo *philo)
 {
-    	if (philo->id % 2 == 0)
-		{
+	if (philo->id % 2 == 0)
+	{
+		pthread_mutex_lock(philo->right_fork);
+		print_state(philo, "has taken a fork");
+		pthread_mutex_lock(philo->left_fork);
+		print_state(philo, "has taken a fork");
+	}
+	else
+	{
+		pthread_mutex_lock(philo->left_fork);
+		print_state(philo, "has taken a fork");
+		pthread_mutex_lock(philo->right_fork);
+		print_state(philo, "has taken a fork");
+	}
+}
+
+static void	left_fork(t_philo *philo)
+{
+	if (philo->id % 2 == 0)
+	{
 		pthread_mutex_unlock(philo->left_fork);
 		pthread_mutex_unlock(philo->right_fork);
-		}
-		else
-		{
+	}
+	else
+	{
 		pthread_mutex_unlock(philo->right_fork);
 		pthread_mutex_unlock(philo->left_fork);
-		}
+	}
 }
 
-void    *philosopher(void *arg)
+void	*philosopher(void *arg)
 {
-    t_philo	*philo;
+	t_philo	*philo;
 
 	philo = (t_philo *)arg;
+	if (philo->rules->number_of_philosophers == 1)
+	{
+		pthread_mutex_lock(philo->left_fork);
+		print_state(philo, "has taken a fork");
+		usleep(philo->rules->time_to_die * 500);
+		pthread_mutex_unlock(philo->left_fork);
+		return (NULL);
+	}
 	while (!check_simulation_stopped(philo->rules) && !check_times_eaten(philo))
 	{
 		take_fork(philo);
-		// Simulate eating
-        print_state(philo, "is eating");
-        philo->eat_count++;
-        philo->last_meal = get_time_in_ms(); // Replace with actual time logic
-        usleep(philo->rules->time_to_eat * 1000); // Simulate eating time
-
-        left_fork(philo);
-		// Simulate thinking or sleeping
-        print_state(philo, "is sleeping");
-        usleep(philo->rules->time_to_sleep * 1000); // Simulate sleeping time
-        print_state(philo, "is thinking");
+		print_state(philo, "is eating");
+		philo->eat_count++;
+		philo->last_meal = get_time_in_ms();
+		usleep(philo->rules->time_to_eat * 500);
+		left_fork(philo);
+		print_state(philo, "is sleeping");
+		usleep(philo->rules->time_to_sleep * 500);
+		print_state(philo, "is thinking");
 	}
 	return (NULL);
 }
