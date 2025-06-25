@@ -6,14 +6,13 @@
 /*   By: tfiz-ben <tfiz-ben@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 11:41:04 by tfiz-ben          #+#    #+#             */
-/*   Updated: 2025/06/04 12:47:58 by tfiz-ben         ###   ########.fr       */
+/*   Updated: 2025/06/06 10:17:36 by tfiz-ben         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PHILO_H
 # define PHILO_H
 
-# include "../lib/libft.h"
 # include <pthread.h>
 # include <stdio.h>
 # include <stdlib.h>
@@ -66,5 +65,7 @@ void				ft_manage_threads(t_philo *philosophers, t_rules *rules,
 void				ft_cleanup(t_rules *rules, t_philo *philosophers,
 						pthread_mutex_t *forks);
 int					check_times_eaten(t_philo *philo);
+int					ft_atoi(const char *nptr);
+int					ft_isdigit(int c);
 
 #endif

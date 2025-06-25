@@ -1,26 +1,19 @@
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
-SRC = src/main.c src/utils.c src/init.c src/threads.c
+SRC = src/main.c src/utils.c src/utils_2.c src/threads.c
 OBJ = $(SRC:.c=.o)
 NAME = philo
-LIB_DIR = lib
-LIB_NAME = libft.a
 
-all: $(LIB_DIR)/$(LIB_NAME) $(NAME)
+all: $(NAME)
 
-$(LIB_DIR)/$(LIB_NAME):
-	$(MAKE) -C $(LIB_DIR)
-
-$(NAME): $(OBJ) $(LIB_DIR)/$(LIB_NAME)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJ) -L$(LIB_DIR) -lft
+$(NAME): $(OBJ)
+	@$(CC) $(CFLAGS) -o $(NAME) $(OBJ)
 
 clean:
-	rm -f $(OBJ)
-	$(MAKE) -C $(LIB_DIR) clean
+	@rm -f $(OBJ)
 
 fclean: clean
-	rm -f $(NAME)
-	$(MAKE) -C $(LIB_DIR) fclean
+	@rm -f $(NAME)
 
 re: fclean all
 

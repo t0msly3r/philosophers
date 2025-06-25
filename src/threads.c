@@ -6,7 +6,7 @@
 /*   By: tfiz-ben <tfiz-ben@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 11:40:57 by tfiz-ben          #+#    #+#             */
-/*   Updated: 2025/06/04 17:43:17 by tfiz-ben         ###   ########.fr       */
+/*   Updated: 2025/06/24 12:03:26 by tfiz-ben         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ void	*monitor(void *arg)
 				return (NULL);
 			i++;
 		}
-		usleep(500);
+		usleep(250);
 	}
 	return (NULL);
 }
@@ -95,7 +95,7 @@ void	*philosopher(void *arg)
 	{
 		pthread_mutex_lock(philo->left_fork);
 		print_state(philo, "has taken a fork");
-		usleep(philo->rules->time_to_die * 500);
+		usleep(philo->rules->time_to_die * 250);
 		pthread_mutex_unlock(philo->left_fork);
 		return (NULL);
 	}
@@ -105,10 +105,10 @@ void	*philosopher(void *arg)
 		print_state(philo, "is eating");
 		philo->eat_count++;
 		philo->last_meal = get_time_in_ms();
-		usleep(philo->rules->time_to_eat * 500);
+		usleep(philo->rules->time_to_eat * 250);
 		left_fork(philo);
 		print_state(philo, "is sleeping");
-		usleep(philo->rules->time_to_sleep * 500);
+		usleep(philo->rules->time_to_sleep * 250);
 		print_state(philo, "is thinking");
 	}
 	return (NULL);
