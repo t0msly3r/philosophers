@@ -6,7 +6,7 @@
 /*   By: tfiz-ben <tfiz-ben@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 11:40:57 by tfiz-ben          #+#    #+#             */
-/*   Updated: 2025/06/24 12:03:26 by tfiz-ben         ###   ########.fr       */
+/*   Updated: 2025/06/26 13:09:29 by tfiz-ben         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ void	*monitor(void *arg)
 				return (NULL);
 			i++;
 		}
-		usleep(250);
+		usleep(1000);
 	}
 	return (NULL);
 }
@@ -84,6 +84,7 @@ static void	left_fork(t_philo *philo)
 		pthread_mutex_unlock(philo->right_fork);
 		pthread_mutex_unlock(philo->left_fork);
 	}
+	print_state(philo, "is sleeping");
 }
 
 void	*philosopher(void *arg)
@@ -95,20 +96,21 @@ void	*philosopher(void *arg)
 	{
 		pthread_mutex_lock(philo->left_fork);
 		print_state(philo, "has taken a fork");
-		usleep(philo->rules->time_to_die * 250);
+		ft_usleep(philo->rules->time_to_die);
 		pthread_mutex_unlock(philo->left_fork);
 		return (NULL);
 	}
+	if (philo->id % 2 == 0)
+		usleep(500);
 	while (!check_simulation_stopped(philo->rules) && !check_times_eaten(philo))
 	{
 		take_fork(philo);
 		print_state(philo, "is eating");
 		philo->eat_count++;
 		philo->last_meal = get_time_in_ms();
-		usleep(philo->rules->time_to_eat * 250);
+		ft_usleep(philo->rules->time_to_eat);
 		left_fork(philo);
-		print_state(philo, "is sleeping");
-		usleep(philo->rules->time_to_sleep * 250);
+		ft_usleep(philo->rules->time_to_sleep);
 		print_state(philo, "is thinking");
 	}
 	return (NULL);
